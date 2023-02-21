@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "playlist"
+version = "0.1.0"
+description = ""
+authors = ["neekrasov <neekrasov@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.11"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.1.0"
+mypy = "^1.0.0"
+flake8 = "^6.0.0"
+flake8-pyproject = "^1.2.2"
+flake8-print = "^5.0.0"
+
+[tool.black]
+line-length = 79
+
+[tool.flake8]
+exclude = ['.git','__pycache__', '.env', 'venv']
+max-line-length = 79
+max-complexivity = 8
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
