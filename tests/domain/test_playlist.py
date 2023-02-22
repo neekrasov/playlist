@@ -47,6 +47,32 @@ class TestPlaylist:
         assert playlist.head.song == song2
         assert playlist.tail.song == song2
 
+    def test_get_song(self):
+        playlist = PlayList("test")
+        song1 = Song(1, "test1", 1.0)
+        song2 = Song(2, "test2", 1.0)
+        playlist.add_song(song1)
+        playlist.add_song(song2)
+        assert playlist.get_song(1) == song1
+
+    def test_get_non_existing_song(self):
+        playlist = PlayList("test")
+        song1 = Song(1, "test1", 1.0)
+        song2 = Song(2, "test2", 1.0)
+        playlist.add_song(song1)
+        playlist.add_song(song2)
+        assert playlist.get_song(3) is None
+
+    def test_update_song(self):
+        playlist = PlayList("test")
+        song1 = Song(1, "test1", 1.0)
+        song2 = Song(2, "test2", 1.0)
+        playlist.add_song(song1)
+        playlist.add_song(song2)
+        update_song = Song(2, "test2", 2.0)
+        playlist.update_song(update_song)
+        assert playlist.get_song(2) == update_song
+
     @pytest.mark.asyncio
     async def test_play(self):
         playlist = PlayList("test")
@@ -207,6 +233,15 @@ class TestPlaylist:
 
 
 class TestPlayListErrors:
+    def test_update_non_existing_song(self):
+        playlist = PlayList("test")
+        song1 = Song(1, "test1", 1.0)
+        song2 = Song(2, "test2", 1.0)
+        playlist.add_song(song1)
+        playlist.add_song(song2)
+        with pytest.raises(PlayListException):
+            playlist.update_song(Song(3, "test3", 1.0))
+
     @pytest.mark.asyncio
     async def test_remove_playing_song(self):
         with pytest.raises(PlayListException):

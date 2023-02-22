@@ -15,7 +15,7 @@ class PlayListState(Enum):
 
 @dataclass
 class Song:
-    id: int
+    id: Optional[int]
     title: str
     duration: float
 
@@ -147,3 +147,15 @@ class PlayList:
         else:
             self.current = self.head
         self.current.track = 0.0  # reset track
+
+    def get_song(self, song_id: int) -> Optional[Song]:
+        node = self._get_node(song_id)
+        if node is None:
+            return None
+        return node.song
+
+    def update_song(self, song: Song) -> None:
+        node = self._get_node(song.id)
+        if node is None:
+            raise PlayListException(f"Song with id {song.id} not found")
+        node.song = song
