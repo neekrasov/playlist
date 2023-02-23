@@ -1,5 +1,5 @@
 import asyncio
-from enum import Enum
+from enum import Enum, auto
 from typing import Optional
 from dataclasses import dataclass
 
@@ -7,10 +7,10 @@ from .exceptions import PlayListException
 
 
 class PlayListState(Enum):
-    PLAYING = asyncio.Event()
-    PAUSED = asyncio.Event()
-    STOPPED = asyncio.Event()
-    NEXT = asyncio.Event()
+    PLAYING = auto()
+    PAUSED = auto()
+    STOPPED = auto()
+    NEXT = auto()
 
 
 @dataclass
@@ -32,13 +32,10 @@ class PlayListNode:
     track: float = 0.0
 
     async def play(self) -> PlayListState:
-        # print(self.song.title, self.track)
         if self.track == self.song.duration:
-            # print(f"# track {self.song.title} ended")
             return PlayListState.NEXT
         self.track += 1
         await asyncio.sleep(1)
-        return PlayListState.PLAYING
 
 
 class PlayList:
@@ -96,43 +93,31 @@ class PlayList:
 
     async def _play(self) -> None:
         while self._check_playback_stop():
-            self.state = await self.current.play()
-            self.state.value.set()
+            state = await self.current.play()
+            if state:
+                self.state = state
 
-        if PlayListState.NEXT.value.is_set():
+        if self.state == PlayListState.NEXT:
             if self.current.prev:
-                PlayListState.PLAYING.value.set()
-                PlayListState.NEXT.value.clear()
                 self.state = PlayListState.PLAYING
                 self.current = self.current.prev
                 await self._play()
             else:
-                PlayListState.NEXT.value.clear()
-                PlayListState.PLAYING.value.clear()
                 self.state = PlayListState.STOPPED
-
-        elif PlayListState.STOPPED.value.is_set():
-            PlayListState.PLAYING.value.clear()
-            self.state = PlayListState.STOPPED
 
     def _check_playback_stop(self) -> bool:
         return (
             self.current
-            and not PlayListState.NEXT.value.is_set()
-            and not PlayListState.STOPPED.value.is_set()
-            and not PlayListState.PAUSED.value.is_set()
+            and self.state != PlayListState.NEXT
+            and self.state != PlayListState.STOPPED
+            and self.state != PlayListState.PAUSED
         )
 
     def pause(self) -> None:
         self.state = PlayListState.PAUSED
-        PlayListState.STOPPED.value.clear()
-        PlayListState.PLAYING.value.clear()
-        PlayListState.PAUSED.value.set()
 
     async def resume(self) -> None:
         self.state = PlayListState.PLAYING
-        PlayListState.PAUSED.value.clear()
-        PlayListState.STOPPED.value.clear()
         await self._play()
 
     def next(self) -> None:

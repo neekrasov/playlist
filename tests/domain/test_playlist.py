@@ -91,14 +91,15 @@ class TestPlaylist:
     async def test_pause(self):
         playlist = PlayList("test")
         song1 = Song(1, "test1", 1.0)
-        song2 = Song(2, "test2", 2.0)
+        song2 = Song(2, "test2", 100.0)
         playlist.add_song(song1)
         playlist.add_song(song2)
 
         async def pause():
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(2)
             print("pause called")
             playlist.pause()
+            print("pause finished", playlist.state, playlist)
 
             assert playlist.state == PlayListState.PAUSED
 
@@ -108,7 +109,7 @@ class TestPlaylist:
     async def test_pause_with_resume(self):
         playlist = PlayList("test")
         song1 = Song(1, "test1", 1.0)
-        song2 = Song(2, "test2", 2.0)
+        song2 = Song(2, "test2", 3.0)
         playlist.add_song(song1)
         playlist.add_song(song2)
 
@@ -142,7 +143,7 @@ class TestPlaylist:
 
         async def stop():
             global start_track
-            await asyncio.sleep(2)
+            await asyncio.sleep(1)
             print("pause called")
             playlist.pause()
             start_track = playlist.current.track
