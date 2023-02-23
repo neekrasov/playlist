@@ -1,17 +1,17 @@
 import asyncio
 import pytest
 import uuid
-from playlist.domain.entities import PlayList, Song, PlayListState
+from playlist.domain.entities import Playlist, Song, PlaylistState
 from playlist.domain.exceptions import PlayListException
 
 
 class TestPlaylist:
     def test_create_playlist(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         assert playlist.title == "test"
 
     def test_add_song_to_playlist(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song = Song("test", 1.0, uuid.uuid4())
         playlist.add_song(song)
         assert playlist.size == 1
@@ -19,7 +19,7 @@ class TestPlaylist:
         assert playlist.head == playlist.tail
 
     def test_add_many_songs_to_playlist(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test", 1.0, uuid.uuid4())
         song2 = Song("test", 1.0, uuid.uuid4())
         playlist.add_song(song1)
@@ -29,7 +29,7 @@ class TestPlaylist:
         assert playlist.tail.song == song2
 
     def test_remove_one_song_from_playlist(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         sond_id = uuid.uuid4()
         song = Song("test", 1.0, sond_id)
         playlist.add_song(song)
@@ -39,7 +39,7 @@ class TestPlaylist:
         assert playlist.tail is None
 
     def test_remove_after_many_add_songs_from_playlist(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test", 1.0, uuid.uuid4())
         song2 = Song("test", 1.0, uuid.uuid4())
         playlist.add_song(song1)
@@ -50,7 +50,7 @@ class TestPlaylist:
         assert playlist.tail.song == song2
 
     def test_get_song(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test1", 1.0, uuid.uuid4())
         song2 = Song("test2", 1.0, uuid.uuid4())
         playlist.add_song(song1)
@@ -58,7 +58,7 @@ class TestPlaylist:
         assert playlist.get_song(song1.id) == song1
 
     def test_get_non_existing_song(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test1", 1.0, uuid.uuid4())
         song2 = Song("test2", 1.0, uuid.uuid4())
         playlist.add_song(song1)
@@ -66,7 +66,7 @@ class TestPlaylist:
         assert playlist.get_song(uuid.uuid4()) is None
 
     def test_update_song(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test1", 1.0, uuid.uuid4())
         song2 = Song("test2", 1.0, uuid.uuid4())
         playlist.add_song(song1)
@@ -77,21 +77,21 @@ class TestPlaylist:
 
     @pytest.mark.asyncio
     async def test_play(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test1", 1.0)
         song2 = Song("test2", 1.0)
         playlist.add_song(song1)
         playlist.add_song(song2)
 
         await playlist.play()
-        assert playlist.state == PlayListState.STOPPED
+        assert playlist.state == PlaylistState.STOPPED
         assert playlist.size == 2
         assert playlist.head.song == song1
         assert playlist.tail.song == song2
 
     @pytest.mark.asyncio
     async def test_pause(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test1", 1.0)
         song2 = Song("test2", 100.0)
         playlist.add_song(song1)
@@ -102,13 +102,13 @@ class TestPlaylist:
             print("pause called")
             playlist.pause()
 
-            assert playlist.state == PlayListState.PAUSED
+            assert playlist.state == PlaylistState.PAUSED
 
         await asyncio.gather(playlist.play(), pause())
 
     @pytest.mark.asyncio
     async def test_pause_with_resume(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test1", 1.0)
         song2 = Song("test2", 3.0)
         playlist.add_song(song1)
@@ -134,7 +134,7 @@ class TestPlaylist:
 
     @pytest.mark.asyncio
     async def test_pause_track(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test1", 1.0)
         song2 = Song("test2", 3.0)
         playlist.add_song(song1)
@@ -164,7 +164,7 @@ class TestPlaylist:
 
     @pytest.mark.asyncio
     async def test_next(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test1", 1.0)
         song2 = Song("test2", 100.0)
         song3 = Song("test3", 100.0)
@@ -190,7 +190,7 @@ class TestPlaylist:
 
     @pytest.mark.asyncio
     async def test_previous(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test1", 10.0)
         song2 = Song("test2", 2.0)
         song3 = Song("test3", 1.0)
@@ -212,7 +212,7 @@ class TestPlaylist:
 
     @pytest.mark.asyncio
     async def test_add_song_with_play(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test1", 5.0)
         song2 = Song("test2", 5.0)
         playlist.add_song(song1)
@@ -236,7 +236,7 @@ class TestPlaylist:
 
 class TestPlayListErrors:
     def test_update_non_existing_song(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test1", 1)
         song2 = Song("test2", 2)
         playlist.add_song(song1)
@@ -247,7 +247,7 @@ class TestPlayListErrors:
     @pytest.mark.asyncio
     async def test_remove_playing_song(self):
         with pytest.raises(PlayListException):
-            playlist = PlayList("test")
+            playlist = Playlist("test")
             song1 = Song("test1", 1, uuid.uuid4())
             song2 = Song("test2", 2, uuid.uuid4())
             playlist.add_song(song1)
@@ -262,7 +262,7 @@ class TestPlayListErrors:
 
     @pytest.mark.asyncio
     async def test_update_song_without_id(self):
-        playlist = PlayList("test")
+        playlist = Playlist("test")
         song1 = Song("test1", 1, uuid.uuid4())
         song2 = Song("test2", 2, uuid.uuid4())
         playlist.add_song(song1)
