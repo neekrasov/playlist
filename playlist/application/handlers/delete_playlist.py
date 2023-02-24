@@ -26,12 +26,12 @@ class DeletePlaylistHandler(Handler[DeletePlaylistCommand, None]):
     async def execute(self, command: DeletePlaylistCommand) -> None:
         async with self._uow.pipeline:
             from_cache = self._cache.get_playlist(command.playlist_id)
-            if from_cache and from_cache.is_playing:
-                raise PlayListException(
-                    "Cannot delete a playlist that is playing"
-                )
-            else:
-                if from_cache:
-                    self._cache.delete_playlist(command.playlist_id)
-                await self._playlist_repo.delete_playlist(command.playlist_id)
-                await self._uow.commit()
+            if from_cache:
+                if from_cache.is_playing:
+                    raise PlayListException(
+                        "Cannot delete a playlist that is playing"
+                    )
+                self._cache.delete_playlist(command.playlist_id)
+
+            await self._playlist_repo.delete_playlist(command.playlist_id)
+            await self._uow.commit()

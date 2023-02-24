@@ -9,9 +9,15 @@ from playlist.domain.exceptions import (
 )
 
 
-class InMemoryPlaylistRepositoryImpl(PlaylistRepository):
+class InMemoryPlaylistRepository(PlaylistRepository):
     def __init__(self, playlists: Dict[PlaylistID, Playlist]) -> None:
         self._playlists = playlists
+
+    def _get(self, playlist_id: PlaylistID) -> Playlist:
+        playlist = self._playlists.get(playlist_id)
+        if not playlist:
+            raise PlaylistNotFoundException(playlist_id)
+        return playlist
 
     async def create_playlist(self, title: str) -> PlaylistID:
         playlist_id = PlaylistID(uuid.uuid4())
@@ -20,26 +26,22 @@ class InMemoryPlaylistRepositoryImpl(PlaylistRepository):
         return playlist_id
 
     async def delete_playlist(self, playlist_id: PlaylistID) -> None:
-        playlist = self._playlists.get(playlist_id)
-        if not playlist:
-            raise PlaylistNotFoundException(playlist_id)
+        self._get(playlist_id)
         del self._playlists[playlist_id]
 
     async def delete_song(
         self, playlist_id: PlaylistID, song_id: SongID
     ) -> None:
-        playlist = self._playlists.get(playlist_id)
-        if playlist:
-            playlist.remove_song(song_id)
-        else:
-            raise PlaylistNotFoundException(playlist_id)
+        playlist = self._get(playlist_id)
+        playlist.remove_song(song_id)
 
-    async def add_song(self, playlist_id: PlaylistID, song: Song):
-        playlist = self._playlists.get(playlist_id)
-        if playlist:
-            playlist.add_song(song)
-        else:
-            raise PlaylistNotFoundException(playlist_id)
+    async def add_song(self, playlist_id: PlaylistID, song: Song) -> None:
+        playlist = self._get(playlist_id)
+        playlist.add_song(song)
+
+    async def update_song(self, playlist_id: PlaylistID, song: Song):
+        playlist = self._get(playlist_id)
+        playlist.update_song(song)
 
 
 class InMemoryPlaylistReaderImpl(PlaylistReader):
@@ -47,4 +49,7 @@ class InMemoryPlaylistReaderImpl(PlaylistReader):
         self._playlists = playlists
 
     async def get_playlist(self, playlist_id: PlaylistID) -> Playlist:
-        return self._playlists[playlist_id]
+        playlist = self._playlists.get(playlist_id)
+        if not playlist:
+            raise PlaylistNotFoundException(playlist_id)
+        return playlist

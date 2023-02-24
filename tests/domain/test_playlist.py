@@ -1,7 +1,7 @@
 import asyncio
 import pytest
 import uuid
-from playlist.domain.entities import Playlist, Song, PlaylistState
+from playlist.domain.entities import Playlist, Song, PlaylistState, SongID
 from playlist.domain.exceptions import PlayListException
 
 
@@ -75,6 +75,15 @@ class TestPlaylist:
         playlist.update_song(update_song)
         assert playlist.get_song(song2.id) == update_song
 
+    def test_pause_not_playing(self):
+        playlist = Playlist("test")
+        song1 = Song("test1", 1.0, uuid.uuid4())
+        song2 = Song("test2", 1.0, uuid.uuid4())
+        playlist.add_song(song1)
+        playlist.add_song(song2)
+        with pytest.raises(PlayListException):
+            playlist.pause()
+
     @pytest.mark.asyncio
     async def test_play(self):
         playlist = Playlist("test")
@@ -105,6 +114,22 @@ class TestPlaylist:
             assert playlist._state == PlaylistState.PAUSED
 
         await asyncio.gather(playlist.play(), pause())
+
+    @pytest.mark.asyncio
+    async def test_update_playing_song(self):
+        playlist = Playlist("test")
+        update_uuid = SongID(uuid.uuid4())
+        song1 = Song("test1", 1.0)
+        song2 = Song("test2", 100.0, update_uuid)
+        playlist.add_song(song1)
+        playlist.add_song(song2)
+
+        async def update():
+            await asyncio.sleep(1)
+            playlist.update_song(Song("test2", 2.0, update_uuid))
+
+        with pytest.raises(PlayListException):
+            await asyncio.gather(playlist.play(), update())
 
     @pytest.mark.asyncio
     async def test_pause_with_resume(self):

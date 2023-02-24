@@ -50,7 +50,7 @@ class Playlist:
         self._head: Optional[PlaylistNode] = None
         self._tail: Optional[PlaylistNode] = None
         self._current: Optional[PlaylistNode] = None
-        self._state: Optional[PlaylistState] = None
+        self._state: Optional[PlaylistState] = PlaylistState.STOPPED
         self._size: int = 0
 
     def add_song(self, song: Song) -> None:
@@ -70,12 +70,7 @@ class Playlist:
         self._size += 1
 
     def remove_song(self, song_id: SongID) -> None:
-        if (
-            self._current
-            and self._state == PlaylistState.PLAYING
-            and self._current.song.id == song_id
-        ):
-            raise PlayListException("Cannot remove song while playing")
+        self._check_is_playing(song_id)
 
         node = self._get_node(song_id)
 
@@ -91,6 +86,14 @@ class Playlist:
             self._size -= 1
         else:
             raise SongNotFoundException(song_id)
+
+    def _check_is_playing(self, song_id: SongID) -> None:
+        if (
+            self._current
+            and self._state == PlaylistState.PLAYING
+            and self._current.song.id == song_id
+        ):
+            raise PlayListException("Cannot remove song while playing")
 
     def _get_node(self, song_id: SongID) -> Optional[PlaylistNode]:
         node = self.head
@@ -124,7 +127,16 @@ class Playlist:
         )
 
     def pause(self) -> None:
-        self._state = PlaylistState.PAUSED
+        if self._state == PlaylistState.PLAYING:
+            self._state = PlaylistState.PAUSED
+
+            # Если через 1 минуту не поменяется статус,
+            # то плейлист меняет статус на остановленный
+            # await asyncio.sleep(60)
+            # if self._state == PlaylistState.PAUSED:
+            #     self._state = PlaylistState.STOPPED
+        else:
+            raise PlayListException("Cannot pause playlist while not playing")
 
     def next(self) -> None:
         if not self._current:
@@ -156,6 +168,7 @@ class Playlist:
     def update_song(self, song: Song) -> None:
         if not song.id:
             raise PlayListException("Cannot update song without id")
+        self._check_is_playing(song.id)
 
         node = self._get_node(song.id)
         if node is None:

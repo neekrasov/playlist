@@ -1,6 +1,7 @@
 import pytest
 import uuid
 import asyncio
+
 from playlist.domain.exceptions import (
     PlaylistNotFoundException,
     PlayListException,
@@ -22,6 +23,34 @@ from playlist.application.handlers.create_song import (
 from playlist.application.handlers.delete_song import (
     DeleteSongHandler,
     DeleteSongCommand,
+)
+from playlist.application.handlers.play_song import (
+    PlaySongHandler,
+    PlaySongCommand,
+)
+from playlist.application.handlers.pause_song import (
+    PauseSongHandler,
+    PauseSongCommand,
+)
+from playlist.application.handlers.next_song import (
+    NextSongHandler,
+    NextSongCommand,
+)
+from playlist.application.handlers.prev_song import (
+    PrevSongHandler,
+    PrevSongCommand,
+)
+from playlist.application.handlers.get_playlist import (
+    GetPlaylistCommand,
+    GetPlaylistHandler,
+)
+from playlist.application.handlers.get_song import (
+    GetSongCommand,
+    GetSongHandler,
+)
+from playlist.application.handlers.update_song import (
+    UpdateSongHandler,
+    UpdateSongCommand,
 )
 
 
@@ -215,3 +244,214 @@ class TestDeleteSongHandler:
                 filled_playlists_cache,
                 fake_uow,
             ).execute(DeleteSongCommand(playlist.id, SongID(uuid.uuid4())))
+
+
+class TestBasePlaylistsActions:
+    @pytest.mark.asyncio
+    async def test_play_song_from_cache(
+        self,
+        playlist_in_memory_repo,
+        filled_cache_playlists_data,
+        filled_playlists_cache,
+        fake_uow,
+    ):
+        playlist_from_cache: Playlist = list(
+            filled_cache_playlists_data.items()
+        )[0][1]
+
+        async def play():
+            await PlaySongHandler(
+                playlist_in_memory_repo,
+                filled_playlists_cache,
+                fake_uow,
+            ).execute(PlaySongCommand(playlist_from_cache.id))
+
+        async def check():
+            await asyncio.sleep(1)
+
+            assert playlist_from_cache.is_playing is True
+            assert playlist_from_cache.current_song is not None
+            assert (
+                playlist_from_cache.current_song.id
+                == playlist_from_cache.current_song.id
+            )
+            playlist_from_cache.pause()
+
+        await asyncio.gather(play(), check())
+
+    @pytest.mark.asyncio
+    async def test_play_song_from_repo(
+        self,
+        filled_playlists,
+        filled_playlists_in_memory_reader,
+        playlists_cache,
+        fake_uow,
+    ):
+        playlist: Playlist = list(filled_playlists.items())[0][1]
+
+        async def play():
+            await PlaySongHandler(
+                filled_playlists_in_memory_reader,
+                playlists_cache,
+                fake_uow,
+            ).execute(PlaySongCommand(playlist.id))
+
+        async def check():
+            await asyncio.sleep(1)
+
+            assert playlist.is_playing is True
+            assert playlist.current_song is not None
+            assert playlist.current_song.id == playlist.current_song.id
+            playlist.pause()
+
+        await asyncio.gather(play(), check())
+
+    @pytest.mark.asyncio
+    async def test_pause_song(
+        self,
+        filled_cache_playlists_data,
+        filled_playlists_cache,
+    ):
+        playlist_from_cache: Playlist = list(
+            filled_cache_playlists_data.items()
+        )[0][1]
+
+        async def pause():
+            await PauseSongHandler(
+                filled_playlists_cache,
+            ).execute(PauseSongCommand(playlist_from_cache.id))
+
+        async def check():
+            await asyncio.sleep(1)
+
+            assert playlist_from_cache.is_playing is False
+
+        await asyncio.gather(playlist_from_cache.play(), pause(), check())
+
+    @pytest.mark.asyncio
+    async def test_next_song(
+        self,
+        filled_cache_playlists_data,
+        filled_playlists_cache,
+    ):
+        playlist_from_cache: Playlist = list(
+            filled_cache_playlists_data.items()
+        )[0][1]
+        old_song = playlist_from_cache.current_song
+
+        async def next():
+            await NextSongHandler(
+                filled_playlists_cache,
+            ).execute(NextSongCommand(playlist_from_cache.id))
+
+        async def check():
+            await asyncio.sleep(1)
+
+            assert playlist_from_cache.is_playing is True
+            assert playlist_from_cache.current_song is not None
+            assert playlist_from_cache.current_song != old_song
+            playlist_from_cache.pause()
+
+        await asyncio.gather(playlist_from_cache.play(), next(), check())
+
+    @pytest.mark.asyncio
+    async def test_previous_song(
+        self,
+        filled_cache_playlists_data,
+        filled_playlists_cache,
+    ):
+        playlist_from_cache: Playlist = list(
+            filled_cache_playlists_data.items()
+        )[0][1]
+        old_song = playlist_from_cache.current_song
+
+        async def previous():
+            await PrevSongHandler(
+                filled_playlists_cache,
+            ).execute(PrevSongCommand(playlist_from_cache.id))
+
+        async def check():
+            await asyncio.sleep(1)
+
+            assert playlist_from_cache.is_playing is True
+            assert playlist_from_cache.current_song is not None
+            assert playlist_from_cache.current_song != old_song
+            playlist_from_cache.pause()
+
+        await asyncio.gather(playlist_from_cache.play(), previous(), check())
+
+    @pytest.mark.asyncio
+    async def test_get_playlist(
+        self, filled_playlists, filled_playlists_in_memory_reader, fake_uow
+    ):
+        playlist: Playlist = list(filled_playlists.items())[0][1]
+
+        playlist_from_handler = await GetPlaylistHandler(
+            filled_playlists_in_memory_reader, fake_uow
+        ).execute(GetPlaylistCommand(playlist.id))
+
+        assert playlist_from_handler.id == playlist.id
+
+    @pytest.mark.asyncio
+    async def test_get_playlist_if_not_exists(
+        self,
+        filled_playlists,
+        filled_playlists_in_memory_reader,
+        fake_uow,
+    ):
+        with pytest.raises(PlaylistNotFoundException):
+            await GetPlaylistHandler(
+                filled_playlists_in_memory_reader, fake_uow
+            ).execute(GetPlaylistCommand(uuid.uuid4()))
+
+    @pytest.mark.asyncio
+    async def test_get_song(
+        self,
+        filled_playlists,
+        filled_playlists_in_memory_reader,
+        fake_uow,
+        songs_id,
+    ):
+        playlist: Playlist = list(filled_playlists.items())[0][1]
+
+        song_from_handler = await GetSongHandler(
+            filled_playlists_in_memory_reader, fake_uow
+        ).execute(GetSongCommand(playlist.id, songs_id[0]))
+
+        assert song_from_handler is not None
+
+    @pytest.mark.asyncio
+    async def test_update_song(
+        self,
+        filled_cache_playlists_data,
+        filled_playlists_cache,
+        filled_playlists,
+        filled_playlists_in_memory_repo,
+        fake_uow,
+        songs_id,
+    ):
+        playlist: Playlist = list(filled_playlists.items())[0][1]
+        playlist_from_cache: Playlist = list(
+            filled_cache_playlists_data.items()
+        )[0][1]
+        song_id: Song = songs_id[0]
+
+        old_song = playlist.get_song(song_id)
+        old_song_from_cache = playlist_from_cache.get_song(song_id)
+
+        await UpdateSongHandler(
+            filled_playlists_in_memory_repo,
+            filled_playlists_cache,
+            fake_uow,
+        ).execute(UpdateSongCommand(playlist.id, Song("title", 123, song_id)))
+
+        new_song = playlist.get_song(song_id)
+
+        assert new_song is not None
+        assert new_song.title != old_song.title
+        assert new_song.id == old_song.id
+        assert new_song.duration != old_song.duration
+
+        assert new_song.title != old_song_from_cache.title
+        assert new_song.id == old_song_from_cache.id
+        assert new_song.duration != old_song_from_cache.duration

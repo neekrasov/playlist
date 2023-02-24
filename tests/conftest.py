@@ -3,10 +3,11 @@ import uuid
 from typing import Dict, List
 from playlist.domain.entities import Playlist, PlaylistID, Song, SongID
 from playlist.adapters.memory.repo import (
-    InMemoryPlaylistRepositoryImpl,
+    InMemoryPlaylistRepository,
 )
 from playlist.adapters.memory.cache import InMemoryPlaylistCache
 from playlist.adapters.memory.fake_uow import FakeUnitOfWork
+from playlist.adapters.memory.reader import InMemoryPlaylistReader
 
 
 def add_songs_to_playlist(playlist: Playlist, songs: List[Song]) -> None:
@@ -76,12 +77,18 @@ def filled_playlists(fake_uuids, songs) -> Dict[PlaylistID, Playlist]:
         id=PlaylistID(fake_uuids[1]),
         title="Playlist 2",
     )
+    playlist_3 = Playlist(
+        id=PlaylistID(fake_uuids[1]),
+        title="Playlist 3",
+    )
 
     add_songs_to_playlist(playlist_1, songs)
     add_songs_to_playlist(playlist_2, songs)
+    add_songs_to_playlist(playlist_3, songs)
     return {
         PlaylistID(fake_uuids[0]): playlist_1,
         PlaylistID(fake_uuids[1]): playlist_2,
+        PlaylistID(fake_uuids[1]): playlist_3,
     }
 
 
@@ -107,12 +114,26 @@ def filled_playlists_cache(
 @pytest.fixture()
 def playlist_in_memory_repo(
     playlists: Dict[PlaylistID, Playlist]
-) -> InMemoryPlaylistRepositoryImpl:
-    return InMemoryPlaylistRepositoryImpl(playlists)
+) -> InMemoryPlaylistRepository:
+    return InMemoryPlaylistRepository(playlists)
 
 
 @pytest.fixture()
 def filled_playlists_in_memory_repo(
     filled_playlists: Dict[PlaylistID, Playlist]
-) -> InMemoryPlaylistRepositoryImpl:
-    return InMemoryPlaylistRepositoryImpl(filled_playlists)
+) -> InMemoryPlaylistRepository:
+    return InMemoryPlaylistRepository(filled_playlists)
+
+
+@pytest.fixture()
+def playlist_in_memory_reader(
+    playlists: Dict[PlaylistID, Playlist]
+) -> InMemoryPlaylistReader:
+    return InMemoryPlaylistReader(playlists)
+
+
+@pytest.fixture()
+def filled_playlists_in_memory_reader(
+    filled_playlists: Dict[PlaylistID, Playlist]
+) -> InMemoryPlaylistReader:
+    return InMemoryPlaylistReader(filled_playlists)

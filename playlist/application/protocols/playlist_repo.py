@@ -17,3 +17,6 @@ class PlaylistRepository(Protocol):
         self, playlist_id: PlaylistID, song_id: SongID
     ) -> None:
         ...
+
+    async def update_song(self, playlist_id: PlaylistID, song: Song) -> None:
+        ...
