@@ -84,7 +84,7 @@ class TestPlaylist:
         playlist.add_song(song2)
 
         await playlist.play()
-        assert playlist.state == PlaylistState.STOPPED
+        assert playlist._state == PlaylistState.STOPPED
         assert playlist.size == 2
         assert playlist.head.song == song1
         assert playlist.tail.song == song2
@@ -102,7 +102,7 @@ class TestPlaylist:
             print("pause called")
             playlist.pause()
 
-            assert playlist.state == PlaylistState.PAUSED
+            assert playlist._state == PlaylistState.PAUSED
 
         await asyncio.gather(playlist.play(), pause())
 
@@ -114,21 +114,21 @@ class TestPlaylist:
         playlist.add_song(song1)
         playlist.add_song(song2)
 
-        assert playlist.current.song == song2
+        assert playlist._current.song == song2
 
         async def stop():
             await asyncio.sleep(1)
             print("pause called")
             playlist.pause()
 
-            assert playlist.current.song == song2
+            assert playlist._current.song == song2
 
         async def resume():
             await asyncio.sleep(2)
             print("pause finished")
             print("resume called")
             await playlist.play()
-            assert playlist.current.song == song1
+            assert playlist._current.song == song1
 
         await asyncio.gather(playlist.play(), stop(), resume())
 
@@ -147,18 +147,18 @@ class TestPlaylist:
             await asyncio.sleep(1)
             print("pause called")
             playlist.pause()
-            start_track = playlist.current.track
+            start_track = playlist._current.track
 
-            assert playlist.current.song == song2
+            assert playlist._current.song == song2
 
         async def resume():
             global start_track
             await asyncio.sleep(3)
             print("pause finished")
             print("resume called")
-            assert playlist.current.track == start_track
+            assert playlist._current.track == start_track
             await playlist.play()
-            assert playlist.current.song == song1
+            assert playlist._current.song == song1
 
         await asyncio.gather(playlist.play(), stop(), resume())
 
@@ -174,17 +174,17 @@ class TestPlaylist:
 
         async def first_next():
             await asyncio.sleep(1)
-            assert playlist.current.song == song3
+            assert playlist._current.song == song3
             print("next called")
             playlist.next()
 
         async def second_next():
             await asyncio.sleep(2)
-            assert playlist.current.song == song2
+            assert playlist._current.song == song2
             print("next called")
             playlist.next()
 
-            assert playlist.current.song == song1
+            assert playlist._current.song == song1
 
         await asyncio.gather(playlist.play(), first_next(), second_next())
 
@@ -200,10 +200,10 @@ class TestPlaylist:
 
         async def previous():
             await asyncio.sleep(4)
-            assert playlist.current.song == song1
+            assert playlist._current.song == song1
             print("previous called")
             playlist.prev()
-            assert playlist.current.song == song2
+            assert playlist._current.song == song2
             await asyncio.sleep(2)
             print("paused called")
             playlist.pause()
@@ -221,10 +221,10 @@ class TestPlaylist:
         # т.к он добавляется в хвост, а порядок идёт от хвоста к голове
         async def add_song_with_play():
             await asyncio.sleep(1)
-            assert playlist.current.song == song1
+            assert playlist._current.song == song1
             print("add_song_with_play called")
             playlist.add_song(song2)
-            assert playlist.current.song == song1
+            assert playlist._current.song == song1
             assert playlist.size == 2
             assert playlist.tail.song == song2
             await asyncio.sleep(2)

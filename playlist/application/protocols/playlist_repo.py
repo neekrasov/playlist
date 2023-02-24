@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from playlist.domain.entities import PlaylistID
+from playlist.domain.entities import PlaylistID, Song, SongID
 
 
 class PlaylistRepository(Protocol):
@@ -8,4 +8,12 @@ class PlaylistRepository(Protocol):
         ...
 
     async def delete_playlist(self, playlist_id: PlaylistID) -> None:
+        ...
+
+    async def add_song(self, playlist_id: PlaylistID, song: Song) -> None:
+        ...
+
+    async def delete_song(
+        self, playlist_id: PlaylistID, song_id: SongID
+    ) -> None:
         ...
