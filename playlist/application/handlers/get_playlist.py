@@ -27,7 +27,7 @@ class GetPlaylistHandler(Handler[GetPlaylistCommand, GetPlaylistDTO]):
 
     async def execute(self, command: GetPlaylistCommand) -> GetPlaylistDTO:
         async with self._uow.pipeline:
-            playlist = await self._playlist_reader.get_playlist(
+            playlist = await self._playlist_reader.get_playlist_by_id(
                 command.playlist_id
             )
             return GetPlaylistDTO(playlist.id, playlist.title)  # type: ignore

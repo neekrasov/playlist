@@ -1,5 +1,6 @@
 import asyncio
 import uuid
+import datetime
 from enum import Enum, auto
 from typing import Optional, NewType
 from dataclasses import dataclass
@@ -22,6 +23,8 @@ class Song:
     title: str
     duration: float
     id: Optional[SongID] = None
+    playlist_id: Optional[PlaylistID] = None
+    timestamp: Optional[datetime.datetime] = None
 
     def __eq__(self, other):
         return self.id == other.id
@@ -109,7 +112,6 @@ class Playlist:
 
     async def play(self) -> None:
         if self._state == PlaylistState.PLAYING:
-            print("RISE")
             raise PlaylistException("Playlist is already playing song")
 
         self._state = PlaylistState.PLAYING

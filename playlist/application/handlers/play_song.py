@@ -26,7 +26,7 @@ class PlaySongHandler(Handler[PlaySongCommand, None]):
         if from_cache:
             await from_cache.play()
         else:
-            playlist = await self._playlist_reader.get_playlist(
+            playlist = await self._playlist_reader.get_playlist_by_id(
                 command.playlist_id
             )
             self._playlist_cache.add_playlist(playlist)

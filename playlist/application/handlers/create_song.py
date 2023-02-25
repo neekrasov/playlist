@@ -25,11 +25,11 @@ class CreateSongHandler(Handler[CreateSongCommand, None]):
 
     async def execute(self, command: CreateSongCommand) -> None:
         async with self._uow.pipeline:
+            song = command.song
+            song.playlist_id = command.playlist_id
             from_cache = self._playlist_cache.get_playlist(command.playlist_id)
             if from_cache:
                 from_cache.add_song(command.song)
 
-            await self._playlist_repo.add_song(
-                command.playlist_id, command.song
-            )
+            await self._playlist_repo.add_song(command.song)
             await self._uow.commit()

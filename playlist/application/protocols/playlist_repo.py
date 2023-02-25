@@ -10,7 +10,7 @@ class PlaylistRepository(Protocol):
     async def delete_playlist(self, playlist_id: PlaylistID) -> None:
         ...
 
-    async def add_song(self, playlist_id: PlaylistID, song: Song) -> None:
+    async def add_song(self, song: Song) -> None:
         ...
 
     async def delete_song(
@@ -18,5 +18,5 @@ class PlaylistRepository(Protocol):
     ) -> None:
         ...
 
-    async def update_song(self, playlist_id: PlaylistID, song: Song) -> None:
+    async def update_song(self, song: Song) -> None:
         ...

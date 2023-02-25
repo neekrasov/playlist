@@ -35,12 +35,12 @@ class InMemoryPlaylistRepository(PlaylistRepository):
         playlist = self._get(playlist_id)
         playlist.remove_song(song_id)
 
-    async def add_song(self, playlist_id: PlaylistID, song: Song) -> None:
-        playlist = self._get(playlist_id)
+    async def add_song(self, song: Song) -> None:
+        playlist = self._get(song.playlist_id)  # type: ignore
         playlist.add_song(song)
 
-    async def update_song(self, playlist_id: PlaylistID, song: Song):
-        playlist = self._get(playlist_id)
+    async def update_song(self, song: Song):
+        playlist = self._get(song.playlist_id)  # type: ignore
         playlist.update_song(song)
 
 

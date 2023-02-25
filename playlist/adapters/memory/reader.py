@@ -9,7 +9,7 @@ class InMemoryPlaylistReader(PlaylistReader):
     def __init__(self, playlists: Dict[PlaylistID, Playlist]):
         self.playlists = playlists
 
-    async def get_playlist(self, playlist_id: PlaylistID) -> Playlist:
+    async def get_playlist_by_id(self, playlist_id: PlaylistID) -> Playlist:
         playlist = self.playlists.get(playlist_id)
         if playlist is None:
             raise PlaylistNotFoundException(playlist_id)

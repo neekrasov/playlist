@@ -30,7 +30,7 @@ class GetSongHandler(Handler[GetSongCommand, GetSongDTO]):
 
     async def execute(self, command: GetSongCommand) -> GetSongDTO:
         async with self._uow.pipeline:
-            playlist = await self._playlist_reader.get_playlist(
+            playlist = await self._playlist_reader.get_playlist_by_id(
                 command.playlist_id
             )
             song = playlist.get_song(command.song_id)
