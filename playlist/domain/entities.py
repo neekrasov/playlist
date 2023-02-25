@@ -4,7 +4,7 @@ from enum import Enum, auto
 from typing import Optional, NewType
 from dataclasses import dataclass
 
-from .exceptions import PlayListException, SongNotFoundException
+from .exceptions import PlaylistException, SongNotFoundException
 
 SongID = NewType("SongID", uuid.UUID)
 PlaylistID = NewType("PlaylistID", uuid.UUID)
@@ -44,7 +44,12 @@ class PlaylistNode:
 
 
 class Playlist:
-    def __init__(self, title: str, id: Optional[PlaylistID] = None):
+    def __init__(
+        self,
+        title: str,
+        id: Optional[PlaylistID] = None,
+        max_pause_time: float = 1.5,
+    ):
         self.id = id
         self.title = title
         self._head: Optional[PlaylistNode] = None
@@ -52,6 +57,7 @@ class Playlist:
         self._current: Optional[PlaylistNode] = None
         self._state: Optional[PlaylistState] = PlaylistState.STOPPED
         self._size: int = 0
+        self._max_pause_time = max_pause_time
 
     def add_song(self, song: Song) -> None:
         node = PlaylistNode(song)
@@ -93,7 +99,7 @@ class Playlist:
             and self._state == PlaylistState.PLAYING
             and self._current.song.id == song_id
         ):
-            raise PlayListException("Cannot remove song while playing")
+            raise PlaylistException("Cannot remove song while playing")
 
     def _get_node(self, song_id: SongID) -> Optional[PlaylistNode]:
         node = self.head
@@ -102,6 +108,10 @@ class Playlist:
         return node
 
     async def play(self) -> None:
+        if self._state == PlaylistState.PLAYING:
+            print("RISE")
+            raise PlaylistException("Playlist is already playing song")
+
         self._state = PlaylistState.PLAYING
         await self._play()
 
@@ -126,21 +136,21 @@ class Playlist:
             and self._state != PlaylistState.PAUSED
         )
 
-    def pause(self) -> None:
+    async def pause(self) -> None:
         if self._state == PlaylistState.PLAYING:
             self._state = PlaylistState.PAUSED
 
-            # Если через 1 минуту не поменяется статус,
+            # Если через N минут не поменяется статус,
             # то плейлист меняет статус на остановленный
-            # await asyncio.sleep(60)
-            # if self._state == PlaylistState.PAUSED:
-            #     self._state = PlaylistState.STOPPED
+            await asyncio.sleep(self._max_pause_time)
+            if self._state == PlaylistState.PAUSED:
+                self._state = PlaylistState.STOPPED
         else:
-            raise PlayListException("Cannot pause playlist while not playing")
+            raise PlaylistException("Cannot pause playlist while not playing")
 
     def next(self) -> None:
         if not self._current:
-            raise PlayListException("Cannot move to next song")
+            raise PlaylistException("Cannot move to next song")
 
         if self._current.prev:
             self._current = self._current.prev
@@ -149,7 +159,7 @@ class Playlist:
 
     def prev(self) -> None:
         if not self._current:
-            raise PlayListException("Cannot move to previous song")
+            raise PlaylistException("Cannot move to previous song")
 
         if self._current.next:
             self._current = self._current.next
@@ -167,17 +177,27 @@ class Playlist:
 
     def update_song(self, song: Song) -> None:
         if not song.id:
-            raise PlayListException("Cannot update song without id")
+            raise PlaylistException("Cannot update song without id")
         self._check_is_playing(song.id)
 
         node = self._get_node(song.id)
         if node is None:
-            raise PlayListException(f"Song with id {song.id} not found")
+            raise PlaylistException(f"Song with id {song.id} not found")
         node.song = song
+
+    def stop(self) -> None:
+        if self._state != PlaylistState.STOPPED:
+            self._state = PlaylistState.STOPPED
+        else:
+            raise PlaylistException("Cannot stop playlist while not playing")
 
     @property
     def is_playing(self) -> bool:
         return self._state == PlaylistState.PLAYING
+
+    @property
+    def is_stopped(self) -> bool:
+        return self._state == PlaylistState.STOPPED
 
     @property
     def current_song(self) -> Optional[Song]:

@@ -2,7 +2,7 @@ import asyncio
 import pytest
 import uuid
 from playlist.domain.entities import Playlist, Song, PlaylistState, SongID
-from playlist.domain.exceptions import PlayListException
+from playlist.domain.exceptions import PlaylistException
 
 
 class TestPlaylist:
@@ -75,14 +75,15 @@ class TestPlaylist:
         playlist.update_song(update_song)
         assert playlist.get_song(song2.id) == update_song
 
-    def test_pause_not_playing(self):
+    @pytest.mark.asyncio
+    async def test_pause_not_playing(self):
         playlist = Playlist("test")
         song1 = Song("test1", 1.0, uuid.uuid4())
         song2 = Song("test2", 1.0, uuid.uuid4())
         playlist.add_song(song1)
         playlist.add_song(song2)
-        with pytest.raises(PlayListException):
-            playlist.pause()
+        with pytest.raises(PlaylistException):
+            await playlist.pause()
 
     @pytest.mark.asyncio
     async def test_play(self):
@@ -106,14 +107,16 @@ class TestPlaylist:
         playlist.add_song(song1)
         playlist.add_song(song2)
 
-        async def pause():
-            await asyncio.sleep(2)
-            print("pause called")
-            playlist.pause()
-
+        async def stop():
+            await asyncio.sleep(1.5)
             assert playlist._state == PlaylistState.PAUSED
+            playlist.stop()
 
-        await asyncio.gather(playlist.play(), pause())
+        async def pause():
+            await asyncio.sleep(1)
+            await playlist.pause()
+
+        await asyncio.gather(playlist.play(), pause(), stop())
 
     @pytest.mark.asyncio
     async def test_update_playing_song(self):
@@ -128,7 +131,7 @@ class TestPlaylist:
             await asyncio.sleep(1)
             playlist.update_song(Song("test2", 2.0, update_uuid))
 
-        with pytest.raises(PlayListException):
+        with pytest.raises(PlaylistException):
             await asyncio.gather(playlist.play(), update())
 
     @pytest.mark.asyncio
@@ -144,7 +147,7 @@ class TestPlaylist:
         async def stop():
             await asyncio.sleep(1)
             print("pause called")
-            playlist.pause()
+            await playlist.pause()
 
             assert playlist._current.song == song2
 
@@ -171,7 +174,7 @@ class TestPlaylist:
             global start_track
             await asyncio.sleep(1)
             print("pause called")
-            playlist.pause()
+            await playlist.pause()
             start_track = playlist._current.track
 
             assert playlist._current.song == song2
@@ -229,9 +232,8 @@ class TestPlaylist:
             print("previous called")
             playlist.prev()
             assert playlist._current.song == song2
-            await asyncio.sleep(2)
-            print("paused called")
-            playlist.pause()
+            await asyncio.sleep(1)
+            playlist.stop()
 
         await asyncio.gather(playlist.play(), previous())
 
@@ -253,8 +255,7 @@ class TestPlaylist:
             assert playlist.size == 2
             assert playlist.tail.song == song2
             await asyncio.sleep(2)
-            print("paused called")
-            playlist.pause()
+            playlist.stop()
 
         await asyncio.gather(playlist.play(), add_song_with_play())
 
@@ -266,12 +267,30 @@ class TestPlayListErrors:
         song2 = Song("test2", 2)
         playlist.add_song(song1)
         playlist.add_song(song2)
-        with pytest.raises(PlayListException):
+        with pytest.raises(PlaylistException):
             playlist.update_song(Song(uuid.uuid4(), "test3", 1.0))
 
     @pytest.mark.asyncio
+    async def test_double_play(self):
+        playlist = Playlist("test")
+        song1 = Song("test1", 1, uuid.uuid4())
+        song2 = Song("test2", 5, uuid.uuid4())
+        playlist.add_song(song1)
+        playlist.add_song(song2)
+
+        async def double_play():
+            await asyncio.sleep(2)
+            print("double_play called")
+            print(playlist.is_playing)
+            with pytest.raises(PlaylistException):
+                await playlist.play()
+            assert playlist.is_playing is True
+
+        await asyncio.gather(playlist.play(), double_play())
+
+    @pytest.mark.asyncio
     async def test_remove_playing_song(self):
-        with pytest.raises(PlayListException):
+        with pytest.raises(PlaylistException):
             playlist = Playlist("test")
             song1 = Song("test1", 1, uuid.uuid4())
             song2 = Song("test2", 2, uuid.uuid4())
@@ -293,5 +312,5 @@ class TestPlayListErrors:
         playlist.add_song(song1)
         playlist.add_song(song2)
 
-        with pytest.raises(PlayListException):
+        with pytest.raises(PlaylistException):
             playlist.update_song(Song("test3", 1))

@@ -12,3 +12,6 @@ class PlaylistCache(Protocol):
 
     def delete_playlist(self, playlist_id: PlaylistID) -> None:
         ...
+
+    async def check(self, playlist: Playlist) -> None:
+        ...

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from common import Handler, UnitOfWork
 from playlist.domain.entities import PlaylistID
-from playlist.domain.exceptions import PlayListException
+from playlist.domain.exceptions import PlaylistException
 from ..protocols.playlist_repo import PlaylistRepository
 from ..protocols.playlist_cache import PlaylistCache
 
@@ -28,7 +28,7 @@ class DeletePlaylistHandler(Handler[DeletePlaylistCommand, None]):
             from_cache = self._cache.get_playlist(command.playlist_id)
             if from_cache:
                 if from_cache.is_playing:
-                    raise PlayListException(
+                    raise PlaylistException(
                         "Cannot delete a playlist that is playing"
                     )
                 self._cache.delete_playlist(command.playlist_id)

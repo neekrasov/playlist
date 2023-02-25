@@ -4,7 +4,7 @@ import asyncio
 
 from playlist.domain.exceptions import (
     PlaylistNotFoundException,
-    PlayListException,
+    PlaylistException,
     SongNotFoundException,
 )
 from playlist.domain.entities import PlaylistID, Song, Playlist, SongID
@@ -114,7 +114,7 @@ class TestDeletePlaylisthandler:
             await asyncio.sleep(1)
             await handler.execute(DeletePlaylistCommand(cached_playlist.id))
 
-        with pytest.raises(PlayListException):
+        with pytest.raises(PlaylistException):
             await asyncio.gather(cached_playlist.play(), delete())
 
 
@@ -189,7 +189,7 @@ class TestCreateSongHandler:
             assert cached_playlist.size == old_size + 1
             assert memory_playlist.size == old_size + 1
 
-            cached_playlist.pause()
+            cached_playlist.stop()
 
         await asyncio.gather(cached_playlist.play(), create(), asserting())
 
@@ -253,7 +253,6 @@ class TestBasePlaylistsActions:
         playlist_in_memory_repo,
         filled_cache_playlists_data,
         filled_playlists_cache,
-        fake_uow,
     ):
         playlist_from_cache: Playlist = list(
             filled_cache_playlists_data.items()
@@ -263,7 +262,6 @@ class TestBasePlaylistsActions:
             await PlaySongHandler(
                 playlist_in_memory_repo,
                 filled_playlists_cache,
-                fake_uow,
             ).execute(PlaySongCommand(playlist_from_cache.id))
 
         async def check():
@@ -275,7 +273,7 @@ class TestBasePlaylistsActions:
                 playlist_from_cache.current_song.id
                 == playlist_from_cache.current_song.id
             )
-            playlist_from_cache.pause()
+            playlist_from_cache.stop()
 
         await asyncio.gather(play(), check())
 
@@ -285,15 +283,13 @@ class TestBasePlaylistsActions:
         filled_playlists,
         filled_playlists_in_memory_reader,
         playlists_cache,
-        fake_uow,
     ):
         playlist: Playlist = list(filled_playlists.items())[0][1]
 
         async def play():
             await PlaySongHandler(
                 filled_playlists_in_memory_reader,
-                playlists_cache,
-                fake_uow,
+                playlists_cache
             ).execute(PlaySongCommand(playlist.id))
 
         async def check():
@@ -302,7 +298,7 @@ class TestBasePlaylistsActions:
             assert playlist.is_playing is True
             assert playlist.current_song is not None
             assert playlist.current_song.id == playlist.current_song.id
-            playlist.pause()
+            playlist.stop()
 
         await asyncio.gather(play(), check())
 
@@ -350,7 +346,7 @@ class TestBasePlaylistsActions:
             assert playlist_from_cache.is_playing is True
             assert playlist_from_cache.current_song is not None
             assert playlist_from_cache.current_song != old_song
-            playlist_from_cache.pause()
+            playlist_from_cache.stop()
 
         await asyncio.gather(playlist_from_cache.play(), next(), check())
 
@@ -376,7 +372,7 @@ class TestBasePlaylistsActions:
             assert playlist_from_cache.is_playing is True
             assert playlist_from_cache.current_song is not None
             assert playlist_from_cache.current_song != old_song
-            playlist_from_cache.pause()
+            playlist_from_cache.stop()
 
         await asyncio.gather(playlist_from_cache.play(), previous(), check())
 

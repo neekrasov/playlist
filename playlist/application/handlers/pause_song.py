@@ -21,4 +21,4 @@ class PauseSongHandler(Handler[PauseSongCommand, None]):
         if not from_cache:
             raise PlaylistNotFoundException(command.playlist_id)
 
-        from_cache.pause()
+        await from_cache.pause()
