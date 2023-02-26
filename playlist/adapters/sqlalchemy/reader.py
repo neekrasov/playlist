@@ -1,4 +1,4 @@
-from sqlalchemy.sql import select, desc
+from sqlalchemy.sql import select, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from playlist.domain.entities import PlaylistID, Playlist, Song
@@ -19,7 +19,7 @@ class PlaylistReaderImpl(PlaylistReader):
 
         playlist = Playlist(id=playlist.id, title=playlist.title)
 
-        stmt_song = select(Song).where(Song.playlist_id == playlist_id).order_by(desc(Song.timestamp))  # type: ignore # noqa
+        stmt_song = select(Song).where(Song.playlist_id == playlist_id).order_by(asc(Song.timestamp))  # type: ignore # noqa
         result_song = await self._session.execute(stmt_song)
         songs = result_song.scalars().all()
         for song in songs:

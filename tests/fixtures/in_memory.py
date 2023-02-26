@@ -1,5 +1,6 @@
 import pytest
 import uuid
+import datetime
 from typing import Dict, List
 from playlist.domain.entities import Playlist, PlaylistID, Song, SongID
 from playlist.adapters.memory.repo import (
@@ -12,6 +13,7 @@ from playlist.adapters.memory.reader import InMemoryPlaylistReader
 
 def add_songs_to_playlist(playlist: Playlist, songs: List[Song]) -> None:
     for song in songs:
+        song.timestamp = datetime.datetime.now()
         playlist.add_song(song)
 
 

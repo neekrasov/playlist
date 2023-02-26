@@ -142,7 +142,7 @@ class Playlist:
         if self._state == PlaylistState.PLAYING:
             self._state = PlaylistState.PAUSED
 
-            # Если через N минут не поменяется статус,
+            # Если через N секунд не поменяется статус,
             # то плейлист меняет статус на остановленный
             await asyncio.sleep(self._max_pause_time)
             if self._state == PlaylistState.PAUSED:

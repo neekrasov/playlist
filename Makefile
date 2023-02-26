@@ -24,3 +24,16 @@ migrate-stamp:
  .PHONY: run-tests
 run-tests:
 	poetry run pytest -v -s
+
+ .PHONY: generate-proto
+generate-proto:
+	poetry run python3.11 -m grpc_tools.protoc \
+	-I ./playlist/adapters/grpc/protos \
+	--python_out=./playlist/adapters/grpc/servicers \
+	--pyi_out=./playlist/adapters/grpc/servicers \
+	--grpc_python_out=./playlist/adapters/grpc/servicers \
+	./playlist/adapters/grpc/protos/playlist.proto
+
+ .PHONY: run-service
+run-service:
+	poetry run python3.11 -m playlist.adapters.grpc.bootstrap

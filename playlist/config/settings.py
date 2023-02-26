@@ -32,7 +32,23 @@ class PGSettings:
 
 
 @dataclass
+class GrpcSettings:
+    host: str = field(init=False)
+    port: int = field(init=False)
+    socket: str = field(init=False)
+
+    def __post_init__(self):
+        self._read_env()
+
+    def _read_env(self):
+        self.host = os.getenv("GRPC_HOST")
+        self.port = os.getenv("GRPC_PORT")
+        self.socket = "{host}:{port}".format(
+            host=self.host, port=self.port
+        )
+
+
+@dataclass
 class Settings:
-    postgres: PGSettings = field(
-        init=False, default_factory=PGSettings
-    )
+    grpc: GrpcSettings = field(init=False, default_factory=GrpcSettings)
+    postgres: PGSettings = field(init=False, default_factory=PGSettings)

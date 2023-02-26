@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 from playlist.adapters.sqlalchemy import models
-from playlist.settings import Settings
+from playlist.config import Settings
 
 settings = Settings()
 config = context.config

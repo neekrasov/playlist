@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+message CreatePlaylistRequest {
+    string title = 1;
+}
+
+message CreatePlaylistResponse {
+    bytes id = 1;
+}
+
+service PlayList {
+    rpc CreatePlaylist(CreatePlaylistRequest) returns (CreatePlaylistResponse) {}
+}

@@ -17,6 +17,8 @@ class TestSqlachemyRepository:
         playlist_id = await playlists_repository.create_playlist("test")
         playlist = await session.get(Playlist, playlist_id)
 
+        await session.delete(playlist)
+
         assert playlist_id is not None
         assert playlist is not None
         assert playlist.id == playlist_id
@@ -56,6 +58,8 @@ class TestSqlachemyRepository:
         assert old_playlist is not None
         assert new_playlist is not None
         assert new_playlist.size == old_playlist.size + 1
+        assert new_playlist.tail is not None
+        assert new_playlist.tail.song.title == "test"
 
     @pytest.mark.asyncio
     async def test_delete_song(
@@ -125,8 +129,10 @@ class TestSqlachemyRepository:
             )
         )
         await session.commit()
-
         song = await session.get(Song, song_id)
+        await session.delete(song)
+        await session.commit()
+
         assert before_song.id == song.id  # type: ignore
         assert before_song.title != before_title
         assert before_song.duration != int(before_duration)
