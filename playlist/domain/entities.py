@@ -1,7 +1,7 @@
 import asyncio
 import uuid
 import datetime
-from enum import Enum, auto
+from enum import Enum
 from typing import Optional, NewType
 from dataclasses import dataclass
 
@@ -12,10 +12,10 @@ PlaylistID = NewType("PlaylistID", uuid.UUID)
 
 
 class PlaylistState(Enum):
-    PLAYING = auto()
-    PAUSED = auto()
-    STOPPED = auto()
-    NEXT = auto()
+    PLAYING = "PLAYING"
+    PAUSED = "PAUSED"
+    STOPPED = "STOPPED"
+    NEXT = "NEXT"
 
 
 @dataclass
@@ -58,7 +58,7 @@ class Playlist:
         self._head: Optional[PlaylistNode] = None
         self._tail: Optional[PlaylistNode] = None
         self._current: Optional[PlaylistNode] = None
-        self._state: Optional[PlaylistState] = PlaylistState.STOPPED
+        self._state: PlaylistState = PlaylistState.STOPPED
         self._size: int = 0
         self._max_pause_time = max_pause_time
 
@@ -216,3 +216,7 @@ class Playlist:
     @property
     def tail(self) -> Optional[PlaylistNode]:
         return self._tail
+
+    @property
+    def state(self) -> PlaylistState:
+        return self._state

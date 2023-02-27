@@ -29,10 +29,10 @@ run-tests:
 generate-proto:
 	poetry run python3.11 -m grpc_tools.protoc \
 	-I ./playlist/adapters/grpc/protos \
-	--python_out=./playlist/adapters/grpc/servicers \
-	--pyi_out=./playlist/adapters/grpc/servicers \
-	--grpc_python_out=./playlist/adapters/grpc/servicers \
-	./playlist/adapters/grpc/protos/playlist.proto
+	--python_out=./playlist/adapters/grpc/generated \
+	--pyi_out=./playlist/adapters/grpc/generated \
+	--grpc_python_out=./playlist/adapters/grpc/generated \
+	./playlist/adapters/grpc/protos/$(path)
 
  .PHONY: run-service
 run-service:

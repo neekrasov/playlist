@@ -1,13 +1,23 @@
 syntax = "proto3";
 
-message CreatePlaylistRequest {
-    string title = 1;
-}
+message CreatePlaylistRequest { string title = 1; }
 
-message CreatePlaylistResponse {
-    bytes id = 1;
+message CreatePlaylistResponse { bytes id = 1; }
+
+message DeletePlaylistRequest { bytes playlist_id = 1; }
+
+message DeletePlaylistResponse {}
+
+message GetPlaylistRequest { bytes playlist_id = 1; }
+
+message GetPlaylistResponse {
+  bytes playlist_id = 1;
+  string title = 2;
+  string state = 3;
 }
 
 service PlayList {
-    rpc CreatePlaylist(CreatePlaylistRequest) returns (CreatePlaylistResponse) {}
+  rpc CreatePlaylist(CreatePlaylistRequest) returns (CreatePlaylistResponse) {}
+  rpc DeletePlaylist(DeletePlaylistRequest) returns (DeletePlaylistResponse) {}
+  rpc GetPlaylist(GetPlaylistRequest) returns (GetPlaylistResponse) {}
 }

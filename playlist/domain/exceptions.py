@@ -5,7 +5,11 @@ class PlaylistException(DomainException):
     """Rise in playlist context"""
 
 
-class PlaylistNotFoundException(PlaylistException):
+class NotFoundException(PlaylistException):
+    """Common exception for some not found"""
+
+
+class PlaylistNotFoundException(NotFoundException):
     """Playlist not found"""
 
     def __init__(self, playlist_id):
@@ -14,7 +18,7 @@ class PlaylistNotFoundException(PlaylistException):
         )
 
 
-class SongNotFoundException(PlaylistException):
+class SongNotFoundException(NotFoundException):
     """Song not found"""
 
     def __init__(self, song_id):

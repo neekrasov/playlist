@@ -16,3 +16,6 @@ class MediatorImpl(Mediator):
                 f"Command {command.__class__} not binded"
             )
         return await handler.execute(command)
+
+    def bind(self, command: InputType, handler: Handler):
+        self._handlers[command] = handler

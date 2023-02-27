@@ -288,8 +288,7 @@ class TestBasePlaylistsActions:
 
         async def play():
             await PlaySongHandler(
-                filled_playlists_in_memory_reader,
-                playlists_cache
+                filled_playlists_in_memory_reader, playlists_cache
             ).execute(PlaySongCommand(playlist.id))
 
         async def check():
@@ -378,12 +377,16 @@ class TestBasePlaylistsActions:
 
     @pytest.mark.asyncio
     async def test_get_playlist(
-        self, filled_playlists, filled_playlists_in_memory_reader, fake_uow
+        self,
+        filled_playlists,
+        filled_playlists_in_memory_reader,
+        fake_uow,
+        playlists_cache,
     ):
         playlist: Playlist = list(filled_playlists.items())[0][1]
 
         playlist_from_handler = await GetPlaylistHandler(
-            filled_playlists_in_memory_reader, fake_uow
+            filled_playlists_in_memory_reader, playlists_cache, fake_uow
         ).execute(GetPlaylistCommand(playlist.id))
 
         assert playlist_from_handler.id == playlist.id
@@ -394,10 +397,11 @@ class TestBasePlaylistsActions:
         filled_playlists,
         filled_playlists_in_memory_reader,
         fake_uow,
+        playlists_cache,
     ):
         with pytest.raises(PlaylistNotFoundException):
             await GetPlaylistHandler(
-                filled_playlists_in_memory_reader, fake_uow
+                filled_playlists_in_memory_reader, playlists_cache, fake_uow
             ).execute(GetPlaylistCommand(uuid.uuid4()))
 
     @pytest.mark.asyncio
