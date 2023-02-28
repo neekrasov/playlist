@@ -50,3 +50,11 @@ class GrpcSettings:
 class Settings:
     grpc: GrpcSettings = field(init=False, default_factory=GrpcSettings)
     postgres: PGSettings = field(init=False, default_factory=PGSettings)
+
+    cache_check_period: int = field(init=False)
+
+    def __post_init__(self):
+        self._read_env()
+
+    def _read_env(self):
+        self.cache_check_period = int(os.getenv("CACHE_CHECK_PERIOD", 1))

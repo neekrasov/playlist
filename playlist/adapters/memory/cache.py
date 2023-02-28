@@ -4,16 +4,17 @@ from typing import Dict, Optional
 from playlist.application.protocols.playlist_cache import PlaylistCache
 from playlist.domain.entities import Playlist, PlaylistID
 from playlist.domain.exceptions import PlaylistException
+from playlist.config import Settings
 
 
 class InMemoryPlaylistCache(PlaylistCache):
     def __init__(
         self,
         cache_playlists: Dict[PlaylistID, Playlist],
-        check_period: int = 1,
+        settings: Settings,
     ) -> None:
         self._cache_playlists = cache_playlists
-        self._check_period = check_period
+        self._check_period = settings.cache_check_period
 
     def get_playlist(self, playlist_id: PlaylistID) -> Optional[Playlist]:
         return self._cache_playlists.get(playlist_id)
