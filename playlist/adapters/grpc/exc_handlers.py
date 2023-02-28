@@ -1,22 +1,15 @@
-from grpc import ServicerContext, StatusCode, RpcError
+from grpc import StatusCode, ServicerContext
 
-from .generated.exc_pb2 import PlaylistError
 from playlist.domain.exceptions import PlaylistException, NotFoundException
 
 
-def handle_playlist_error(
-    e: PlaylistException, context: ServicerContext
-) -> None:
-    context.set_code(StatusCode.ABORTED)
-    context.set_details(str(e))
-    context.set_trailing_metadata(str(e))
-    raise RpcError(PlaylistError(message=str(e)))
+def error_handler(func):
+    async def wrapper(self, request, context: ServicerContext):
+        try:
+            return await func(self, request, context)
+        except NotFoundException as e:
+            await context.abort(StatusCode.NOT_FOUND, e.message)
+        except PlaylistException as e:
+            await context.abort(StatusCode.ABORTED, e.message)
 
-
-def handle_not_found_error(
-    e: NotFoundException, context: ServicerContext
-) -> None:
-    context.set_code(StatusCode.NOT_FOUND)
-    context.set_details(str(e))
-    context.set_trailing_metadata(str(e))
-    raise RpcError(PlaylistError(message=str(e)))
+    return wrapper

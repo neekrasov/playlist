@@ -4,11 +4,15 @@ import logging.config
 from grpc.aio import server
 
 from playlist.config import Settings
-from .generated import playlist_pb2_grpc as playlist_servicers
-from .services import PlaylistService
 from ..di.container import build_container, DIScope
-from .interceptors import LoggingInterceptor, ErrorHandlerInterceptor
 from ..sqlalchemy.models import start_mapping
+from .interceptors import LoggingInterceptor
+from .services import PlaylistService, SongService, PlaylistControlService
+from .generated import (
+    playlist_pb2_grpc as playlist_servicers,
+    song_pb2_grpc as song_servicers,
+    control_pb2_grpc as control_servicers,
+)
 
 
 async def serve(socket: str) -> None:
@@ -16,12 +20,17 @@ async def serve(socket: str) -> None:
     async with container.enter_scope(DIScope.APP) as app_state:
         grpc_server = server(
             interceptors=[
-                ErrorHandlerInterceptor(logger),
                 LoggingInterceptor(logger),
             ]
         )
         playlist_servicers.add_PlayListServicer_to_server(
             PlaylistService(container, app_state), grpc_server
+        )
+        song_servicers.add_SongServicer_to_server(
+            SongService(container, app_state), grpc_server
+        )
+        control_servicers.add_PlaylistControlServicer_to_server(
+            PlaylistControlService(container, app_state), grpc_server
         )
 
         logger.info(f"Serve on {socket}")
@@ -31,6 +40,7 @@ async def serve(socket: str) -> None:
         try:
             await grpc_server.wait_for_termination()
         finally:
+            logger.info("Shutting down gRPC server")
             await grpc_server.stop(0)
 
 

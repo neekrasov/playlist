@@ -43,9 +43,7 @@ class GrpcSettings:
     def _read_env(self):
         self.host = os.getenv("GRPC_HOST")
         self.port = os.getenv("GRPC_PORT")
-        self.socket = "{host}:{port}".format(
-            host=self.host, port=self.port
-        )
+        self.socket = "{host}:{port}".format(host=self.host, port=self.port)
 
 
 @dataclass

@@ -1,3 +1,0 @@
-syntax = "proto3";
-
-message PlaylistError { string message = 1; }

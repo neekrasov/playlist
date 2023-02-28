@@ -22,7 +22,6 @@ class PlaySongHandler(Handler[PlaySongCommand, None]):
 
     async def execute(self, command: PlaySongCommand) -> None:
         from_cache = self._playlist_cache.get_playlist(command.playlist_id)
-
         if from_cache:
             await from_cache.play()
         else:

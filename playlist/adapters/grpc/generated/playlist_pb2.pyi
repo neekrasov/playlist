@@ -40,4 +40,9 @@ class GetPlaylistResponse(_message.Message):
     playlist_id: bytes
     state: str
     title: str
-    def __init__(self, playlist_id: _Optional[bytes] = ..., title: _Optional[str] = ..., state: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        playlist_id: _Optional[bytes] = ...,
+        title: _Optional[str] = ...,
+        state: _Optional[str] = ...,
+    ) -> None: ...

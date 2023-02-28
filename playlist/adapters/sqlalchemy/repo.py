@@ -5,6 +5,7 @@ from playlist.application.protocols import PlaylistRepository
 from playlist.domain.entities import Playlist, Song, PlaylistID, SongID
 from playlist.domain.exceptions import (
     SongNotFoundException,
+    PlaylistNotFoundException,
 )
 
 
@@ -20,12 +21,16 @@ class PlaylistRepositoryImpl(PlaylistRepository):
         return playlist.id  # type: ignore
 
     async def delete_playlist(self, playlist_id: PlaylistID) -> None:
+        await self._get_playlist(playlist_id)
         await self._session.execute(
             delete(Playlist).where(Playlist.id == playlist_id)  # type: ignore
         )
 
-    async def add_song(self, song: Song) -> None:
+    async def add_song(self, song: Song) -> SongID:
         self._session.add(song)
+        await self._session.flush()
+        await self._session.refresh(song)
+        return song.id  # type: ignore
 
     async def delete_song(
         self,
@@ -49,7 +54,6 @@ class PlaylistRepositoryImpl(PlaylistRepository):
         db_song = await self._get_song(
             song.id, song.playlist_id  # type: ignore
         )
-
         db_song.title = song.title
         db_song.duration = song.duration
 
@@ -68,3 +72,16 @@ class PlaylistRepositoryImpl(PlaylistRepository):
         if not song:
             raise SongNotFoundException(song_id)
         return song
+
+    async def _get_playlist(self, playlist_id: PlaylistID):
+        playlist_result = await self._session.execute(
+            select(Playlist).where(
+                and_(
+                    Playlist.id == playlist_id,  # type: ignore
+                )
+            )
+        )
+        playlist = playlist_result.scalar_one_or_none()
+        if not playlist:
+            raise PlaylistNotFoundException(playlist_id)
+        return playlist

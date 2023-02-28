@@ -146,15 +146,12 @@ class TestPlaylist:
 
         async def stop():
             await asyncio.sleep(1)
-            print("pause called")
             await playlist.pause()
 
             assert playlist._current.song == song2
 
         async def resume():
             await asyncio.sleep(2)
-            print("pause finished")
-            print("resume called")
             await playlist.play()
             assert playlist._current.song == song1
 
@@ -173,7 +170,6 @@ class TestPlaylist:
         async def stop():
             global start_track
             await asyncio.sleep(1)
-            print("pause called")
             await playlist.pause()
             start_track = playlist._current.track
 
@@ -182,8 +178,6 @@ class TestPlaylist:
         async def resume():
             global start_track
             await asyncio.sleep(3)
-            print("pause finished")
-            print("resume called")
             assert playlist._current.track == start_track
             await playlist.play()
             assert playlist._current.song == song1
@@ -203,13 +197,11 @@ class TestPlaylist:
         async def first_next():
             await asyncio.sleep(1)
             assert playlist._current.song == song3
-            print("next called")
             playlist.next()
 
         async def second_next():
             await asyncio.sleep(2)
             assert playlist._current.song == song2
-            print("next called")
             playlist.next()
 
             assert playlist._current.song == song1
@@ -229,7 +221,6 @@ class TestPlaylist:
         async def previous():
             await asyncio.sleep(4)
             assert playlist._current.song == song1
-            print("previous called")
             playlist.prev()
             assert playlist._current.song == song2
             await asyncio.sleep(1)
@@ -249,7 +240,6 @@ class TestPlaylist:
         async def add_song_with_play():
             await asyncio.sleep(1)
             assert playlist._current.song == song1
-            print("add_song_with_play called")
             playlist.add_song(song2)
             assert playlist._current.song == song1
             assert playlist.size == 2
@@ -280,8 +270,6 @@ class TestPlayListErrors:
 
         async def double_play():
             await asyncio.sleep(2)
-            print("double_play called")
-            print(playlist.is_playing)
             with pytest.raises(PlaylistException):
                 await playlist.play()
             assert playlist.is_playing is True
@@ -299,7 +287,6 @@ class TestPlayListErrors:
 
             async def remove_playing_song():
                 await asyncio.sleep(1)
-                print("remove_playing_song called")
                 playlist.remove_song(song2.id)
 
             await asyncio.gather(playlist.play(), remove_playing_song())

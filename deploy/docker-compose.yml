@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: playlist_database
+    image: postgres:14
+    volumes:
+      - playlist_database_data:/var/lib/postgresql/data
+    ports:
+      - ${HOST_POSTGRES_PORT}:${POSTGRES_PORT}
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+  
+  grpc:
+    container_name: playlist_server
+    build:
+      context: ../
+      dockerfile: deploy/Dockerfile
+    ports:
+      - ${HOST_GRPC_PORT}:${GRPC_PORT}
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+volumes:
+  playlist_database_data:

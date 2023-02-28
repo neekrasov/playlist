@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+message PlaySongRequest { bytes playlist_id = 1; }
+message PlaySongResponse {}
+
+message PauseSongRequest { bytes playlist_id = 1; }
+message PauseSongResponse {}
+
+message PrevSongRequest { bytes playlist_id = 1; }
+message PrevSongResponse {}
+
+message NextSongRequest { bytes playlist_id = 1; }
+message NextSongResponse {}
+
+service PlaylistControl {
+  rpc PlaySong(PlaySongRequest) returns (PlaySongResponse) {}
+  rpc PauseSong(PauseSongRequest) returns (PauseSongResponse) {}
+  rpc NextSong(NextSongRequest) returns (NextSongResponse) {}
+  rpc PrevSong(PrevSongRequest) returns (PrevSongResponse) {}
+}

@@ -1,4 +1,5 @@
 from common.exception import DomainException
+from playlist.constants import SONG_NOT_FOUND, PLAYLIST_NOT_FOUND
 
 
 class PlaylistException(DomainException):
@@ -14,7 +15,7 @@ class PlaylistNotFoundException(NotFoundException):
 
     def __init__(self, playlist_id):
         super(PlaylistNotFoundException, self).__init__(
-            "Playlist with id '{}' not found".format(playlist_id)
+            PLAYLIST_NOT_FOUND.format(playlist_id)
         )
 
 
@@ -23,5 +24,5 @@ class SongNotFoundException(NotFoundException):
 
     def __init__(self, song_id):
         super(SongNotFoundException, self).__init__(
-            "Song with id '{}' not found".format(song_id)
+            SONG_NOT_FOUND.format(song_id)
         )

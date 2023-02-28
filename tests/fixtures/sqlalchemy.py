@@ -44,55 +44,63 @@ async def session(settings: Settings, start_mapping_fixture):
 
 
 @pytest_asyncio.fixture(scope="class")
-async def fill_db_data(session: AsyncSession, playlists_id, songs_id):
-    playlists = [
+async def db_playlists(playlists_id):
+    return [
         Playlist("title1", playlists_id[0]),
         Playlist("title2", playlists_id[1]),
     ]
-    songs = [
+
+
+@pytest_asyncio.fixture(scope="class")
+async def db_songs(songs_id, db_playlists):
+    return [
         Song(
             "title11",
-            100,
+            1,
             songs_id[0],
-            playlists_id[0],
+            db_playlists[0].id,
         ),
         Song(
             "title12",
-            100,
+            1,
             songs_id[1],
-            playlists_id[0],
+            db_playlists[0].id,
         ),
         Song(
             "title13",
-            100,
+            1,
             songs_id[2],
-            playlists_id[0],
+            db_playlists[0].id,
         ),
         Song(
             "title21",
             100,
             songs_id[3],
-            playlists_id[1],
+            db_playlists[1].id,
         ),
         Song(
             "title22",
             100,
             songs_id[4],
-            playlists_id[1],
+            db_playlists[1].id,
         ),
         Song(
             "title23",
             100,
             songs_id[5],
-            playlists_id[1],
+            db_playlists[1].id,
         ),
     ]
-    session.add_all(playlists)
-    session.add_all(songs)
+
+
+@pytest_asyncio.fixture(scope="class")
+async def fill_db_data(session: AsyncSession, db_playlists, db_songs):
+    session.add_all(db_playlists)
+    session.add_all(db_songs)
     await session.commit()
     yield
 
-    for playlist in playlists:
+    for playlist in db_playlists:
         await session.delete(playlist)
     await session.commit()
 

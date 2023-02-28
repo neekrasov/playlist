@@ -140,7 +140,7 @@ class TestCreateSongHandler:
             fake_uow,
         )
         await playlist_handler.execute(
-            CreateSongCommand(playlist.id, Song("title", 100))
+            CreateSongCommand(Song("title", 100, playlist_id=playlist.id))
         )
 
         assert playlist.size == old_size + 1
@@ -157,7 +157,9 @@ class TestCreateSongHandler:
             await CreateSongHandler(
                 playlist_in_memory_repo, playlists_cache, fake_uow
             ).execute(
-                CreateSongCommand(PlaylistID(uuid.uuid4()), Song("title", 100))
+                CreateSongCommand(
+                    Song("title", 100, playlist_id=PlaylistID(uuid.uuid4()))
+                )
             )
 
     @pytest.mark.asyncio
@@ -181,7 +183,9 @@ class TestCreateSongHandler:
                 filled_playlists_cache,
                 fake_uow,
             ).execute(
-                CreateSongCommand(cached_playlist.id, Song("title", 100))
+                CreateSongCommand(
+                    Song("title", 100, playlist_id=cached_playlist.id)
+                )
             )
 
         async def asserting():
@@ -443,7 +447,7 @@ class TestBasePlaylistsActions:
             filled_playlists_in_memory_repo,
             filled_playlists_cache,
             fake_uow,
-        ).execute(UpdateSongCommand(playlist.id, Song("title", 123, song_id)))
+        ).execute(UpdateSongCommand(Song("title", 123, song_id, playlist.id)))
 
         new_song = playlist.get_song(song_id)
 

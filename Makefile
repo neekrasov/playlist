@@ -1,5 +1,17 @@
-include .env
-export 
+DOCKER_ENV := deploy/.env
+LOCAL_ENV := .env
+
+ifneq (${DOCKER},)
+	ENV_FILE := ${DOCKER_ENV}
+else ifeq (${DOCKER},)
+	ENV_FILE := ${LOCAL_ENV}
+endif
+
+include ${ENV_FILE}
+export
+
+all:
+	echo ${POSTGRES_HOST} && echo ${ENV_FILE} && echo " "
 
  .PHONY: migrate-up
 migrate-up:
@@ -37,3 +49,27 @@ generate-proto:
  .PHONY: run-service
 run-service:
 	poetry run python3.11 -m playlist.adapters.grpc.bootstrap
+
+ .PHONY: compose-build
+compose-build:
+	docker-compose -f ./deploy/docker-compose.yml --env-file ${DOCKER_ENV} build
+
+ .PHONY: compose-up
+compose-up:
+	docker-compose -f ./deploy/docker-compose.yml --env-file ${DOCKER_ENV} up -d
+
+ .PHONY: compose-logs
+compose-logs:
+	docker-compose -f ./deploy/docker-compose.yml --env-file ${DOCKER_ENV} logs -f
+
+ .PHONY: compose-exec
+compose-exec:
+	docker-compose -f ./deploy/docker-compose.yml --env-file ${DOCKER_ENV} exec backend bash
+
+ .PHONY: docker-rm-volume
+docker-rm-volume:
+	docker volume rm -f workout_postgres_data
+
+ .PHONY: compose-down
+compose-down:
+	docker-compose -f ./deploy/docker-compose.yml --env-file ${DOCKER_ENV} down --remove-orphans
